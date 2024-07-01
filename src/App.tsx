@@ -1,27 +1,13 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import { createPortal } from "react-dom";
 
-const Video = ({ props }: { props: { url: string; callback: () => void } }) => {
-  return (
-    <video muted autoPlay onClick={props.callback}>
-      <source src={props.url} type="video/mp4" />
-    </video>
-  );
-};
+let main: HTMLVideoElement | null = null;
 
 const App = () => {
-  const [refMaster, setRefMaster] = useState<HTMLDivElement | null>(null);
-  const [refOther1, setRefOther1] = useState<HTMLDivElement | null>(null);
-  const [refOther2, setRefOther2] = useState<HTMLDivElement | null>(null);
-  const [refOther3, setRefOther3] = useState<HTMLDivElement | null>(null);
-
-  const [o, setO] = useState({
-    master: refMaster,
-    other1: refOther1,
-    other2: refOther2,
-    other3: refOther3,
-  });
+  const [masterRef, setMasterRef] = useState<HTMLDivElement | null>(null);
+  const [other1Ref, setOther1Ref] = useState<HTMLDivElement | null>(null);
+  const [other2Ref, setOther2Ref] = useState<HTMLDivElement | null>(null);
+  const [other3Ref, setOther3Ref] = useState<HTMLDivElement | null>(null);
 
   const url1 =
     "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_30MB.mp4";
@@ -32,79 +18,64 @@ const App = () => {
   const url4 =
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4";
 
-  useEffect(() => {
-    if (!refMaster) return;
-    setO({
-      master: refMaster,
-      other1: refOther1,
-      other2: refOther2,
-      other3: refOther3,
-    });
-  }, [refMaster, refOther1, refOther2, refOther3]);
-
-  const handleClick = (index: number) => {
-    if (index === 0) return;
-    const newO = { ...o };
-    console.log(newO);
-    if (index === 1) [newO.master, newO.other1] = [newO.other1, newO.master];
-    if (index === 2) [newO.master, newO.other2] = [newO.other2, newO.master];
-    if (index === 3) [newO.master, newO.other3] = [newO.other3, newO.master];
-    setO(newO);
+  const createStuff = (ref: HTMLElement | null, url: string, index: number) => {
+    if (!ref) return;
+    const video = ref.appendChild(document.createElement("video"));
+    video.setAttribute("autoplay", "");
+    video.setAttribute("loop", "");
+    video.setAttribute("mute", "");
+    video.setAttribute("controls", "");
+    const source = video.appendChild(document.createElement("source"));
+    source.setAttribute("src", url);
+    source.setAttribute("type", "video/mp4");
+    video.onclick = (e) => {
+      e.preventDefault();
+      handleClick(video);
+    };
   };
+
+  const handleClick = (video: HTMLVideoElement) => {
+    if (main === video) return;
+    main = video;
+
+    const masterVideo = masterRef?.firstElementChild as HTMLVideoElement;
+
+    video.parentElement?.appendChild(masterVideo);
+    masterRef?.appendChild(video);
+
+    masterVideo.play();
+    masterVideo.muted = true;
+    video.play();
+    video.muted = true;
+  };
+
+  useEffect(() => {
+    createStuff(masterRef, url1, 0);
+  }, [masterRef]);
+
+  useEffect(() => {
+    createStuff(other1Ref, url2, 1);
+  }, [other1Ref]);
+
+  useEffect(() => {
+    createStuff(other2Ref, url3, 1);
+  }, [other2Ref]);
+
+  useEffect(() => {
+    createStuff(other3Ref, url4, 1);
+  }, [other3Ref]);
 
   return (
     <>
       <div className="App">
         <div className="the-grid">
-          <div className="main" ref={setRefMaster}></div>
-
+          <div className="main" ref={setMasterRef}></div>
           <div className="others">
-            <div ref={setRefOther1}></div>
-            <div ref={setRefOther2}></div>
-            <div ref={setRefOther3}></div>
+            <div className="other1" ref={setOther1Ref}></div>
+            <div className="other2" ref={setOther2Ref}></div>
+            <div className="other3" ref={setOther3Ref}></div>
           </div>
         </div>
-
-        {o.master &&
-          createPortal(
-            <Video
-              props={{
-                url: url1,
-                callback: () => handleClick(0),
-              }}
-            />,
-            o.master
-          )}
-        {o.other1 &&
-          createPortal(
-            <Video
-              props={{
-                url: url2,
-                callback: () => handleClick(1),
-              }}
-            />,
-            o.other1
-          )}
-        {o.other2 &&
-          createPortal(
-            <Video
-              props={{
-                url: url3,
-                callback: () => handleClick(2),
-              }}
-            />,
-            o.other2
-          )}
-        {o.other3 &&
-          createPortal(
-            <Video
-              props={{
-                url: url4,
-                callback: () => handleClick(3),
-              }}
-            />,
-            o.other3
-          )}
       </div>
     </>
   );
