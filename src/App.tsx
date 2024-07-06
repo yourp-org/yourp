@@ -1,171 +1,129 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
 
-import jelly from "./jelly.mp4";
-import manifest from "./manifest.m3u8";
+import { TheGrid } from "./TheGrid";
 
-import videojs from "video.js";
-import "video.js/dist/video-js.css";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import Container from "@mui/material/Container";
 
-let main: HTMLElement | null = null;
+import data from "./assets/filtered_dump.json";
 
-export const VideoJS = (props: any) => {
-  const videoRef = React.useRef(null);
-  const playerRef = React.useRef(null);
-  const { options, onReady } = props;
+type Video = {
+  id: string;
+  title: string;
+  pornstar: string;
 
-  React.useEffect(() => {
-    // Make sure Video.js player is only initialized once
-    if (!playerRef.current) {
-      // The Video.js player needs to be _inside_ the component el for React 18 Strict Mode.
-      const videoElement = document.createElement("video-js");
+  tags: string[];
+  categories: string[];
 
-      videoElement.classList.add("vjs-big-play-centered");
-      (videoRef.current as any).appendChild(videoElement);
+  thumbnail_lq: string;
+  thumbnail_hq: string;
+  thumbnail_nb: number;
 
-      const player = ((playerRef.current as any) = videojs(
-        videoElement,
-        options,
-        () => {
-          videojs.log("player is ready");
-          onReady && onReady(player);
-        }
-      ));
+  date: string;
+  views: number;
+  duration_s: number;
+  likes: number;
+  dislikes: number;
+  like_percent: number;
+};
 
-      // You could update an existing player in the `else` block here
-      // on prop change, for example:
-    } else {
-      const player = playerRef.current as any;
+const GridItem = ({
+  video,
+  onClick,
+  selected,
+}: {
+  video: Video;
+  onClick: () => void;
+  selected: boolean;
+}) => {
+  const thumbnail = parseInt(
+    video.thumbnail_hq.split(")").at(-1)?.split(".jpg")[0] as string
+  );
 
-      player.autoplay(options.autoplay);
-      player.src(options.sources);
-    }
-  }, [options, videoRef]);
+  const thumbnail_url =
+    video.thumbnail_hq.split(")").slice(0, -1).join(")") + ")";
 
-  // Dispose the Video.js player when the functional component unmounts
-  React.useEffect(() => {
-    const player = playerRef.current as any;
+  const [index, setIndex] = useState<number | null>(null);
+  const [isHover, setIsHover] = useState(false);
+  const [intervalId, setIntervalId] = useState(0);
 
-    return () => {
-      if (player && !player.isDisposed()) {
-        player.dispose();
-        playerRef.current = null;
-      }
-    };
-  }, [playerRef]);
+  const startChange = () => {
+    setIsHover(true);
+    setIntervalId(
+      window.setInterval(() => {
+        setIndex((index) =>
+          index === null ? 1 : index < video.thumbnail_nb - 1 ? index + 1 : 1
+        );
+      }, 750)
+    );
+  };
+
+  const endChange = () => {
+    setIsHover(false);
+    setIndex(null);
+
+    window.clearInterval(intervalId);
+    setIntervalId(0);
+  };
 
   return (
-    <div data-vjs-player style={{ width: "80%" }}>
-      <div ref={videoRef} />
-    </div>
+    <Grid
+      item
+      xs={3}
+      onMouseEnter={() => startChange()}
+      onMouseLeave={() => endChange()}
+      onClick={onClick}
+      style={{
+        opacity: selected ? (isHover ? 0.9 : 1) : isHover ? 0.75 : 0.5,
+        transition: "opacity 0.3s",
+      }}
+    >
+      <Paper className="gridItem">
+        <img src={`${thumbnail_url}${index ?? thumbnail}.jpg`} alt="" />
+      </Paper>
+    </Grid>
   );
 };
 
-const handleClick = (ref: HTMLElement) => {
-  if (!main) return;
-
-  if (main === ref) return;
-
-  main.className = "other";
-  ref.className = "main";
-  main = ref;
-};
-
-const addVideo = (ref: HTMLElement | null, url: string, index: number) => {
-  if (!ref || ref.childElementCount !== 0) return;
-
-  const video = ref.appendChild(document.createElement("video"));
-  video.setAttribute("loop", "");
-  video.setAttribute("mute", "");
-  video.setAttribute("autoplay", "");
-  video.setAttribute("controls", "");
-
-  video.onclick = (e) => {
-    e.preventDefault();
-    handleClick(ref);
-  };
-
-  // video.onloadedmetadata = () => {
-  //   console.log(url, video.videoWidth, video.videoHeight);
-  // };
-
-  const source = video.appendChild(document.createElement("source"));
-  source.setAttribute("src", url);
-  source.setAttribute("type", url.endsWith("mp4") ? "video/mp4" : "video/mp2t");
-};
-
-// const url1 =
-//   "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_30MB.mp4";
-const url1 =
-  "https://ev.phncdn.com/videos/202406/27/454396371/480P_2000K_454396371.mp4?validfrom=1720038024&validto=1720045224&rate=500k&burst=1400k&ip=90.92.24.119&ipa=90.92.24.119&hash=6%2BnAUJEZxB%2BOdGiSkzDaCEp%2BjAs%3D";
-const url2 =
-  "https://ev.phncdn.com/videos/202406/07/453488691/480P_2000K_453488691.mp4?validfrom=1720038406&validto=1720045606&rate=500k&burst=1400k&ip=90.92.24.119&ipa=90.92.24.119&hash=65ne9M%2BmfORGuTo8TIG9RXzQR5s%3D";
-const url3 =
-  "https://test-videos.co.uk/vids/sintel/mp4/av1/360/Sintel_360_10s_10MB.mp4";
-const url4 =
-  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4";
-
 const App = () => {
-  const [mainRef, setMainRef] = useState<HTMLDivElement | null>(null);
-  const [other1Ref, setOther1Ref] = useState<HTMLDivElement | null>(null);
-  const [other2Ref, setOther2Ref] = useState<HTMLDivElement | null>(null);
-  const [other3Ref, setOther3Ref] = useState<HTMLDivElement | null>(null);
+  const videos = ((data as any).videos as Video[]).slice(-50);
 
-  useEffect(() => {
-    if (!mainRef) return;
-    addVideo(mainRef, url1, 0);
-    mainRef.className = "main";
-    main = mainRef;
-  }, [mainRef]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (!other1Ref) return;
-    addVideo(other1Ref, url2, 1);
-    other1Ref.className = "other";
-  }, [other1Ref]);
-
-  useEffect(() => {
-    if (!other2Ref) return;
-    addVideo(other2Ref, url3, 1);
-    other2Ref.className = "other";
-  }, [other2Ref]);
-
-  useEffect(() => {
-    if (!other3Ref) return;
-    addVideo(other3Ref, url4, 1);
-    other3Ref.className = "other";
-  }, [other3Ref]);
+  const handleClick = (id: string) => {
+    if (selectedIds.length === 4) return;
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((i) => i !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
 
   return (
     <>
-      <div className="App">
-        <div className="the-grid">
-          <iframe
-            allowFullScreen
-            title="test1"
-            src="https://www.pornhub.com/embed/f4cc0ad3819a36752467?autoplay=1&muted=1"
-            className="main"
-          ></iframe>
-          <iframe
-            allowFullScreen
-            title="test2"
-            src="https://www.pornhub.com/embed/3eee609d05b90c14222f?autoplay=1&muted=1"
-            className="other"
-          ></iframe>
-          <iframe
-            allowFullScreen
-            title="test3"
-            src="https://www.pornhub.com/embed/e5e9f6611e2ee05a31ce?autoplay=1&muted=1"
-            className="other"
-          ></iframe>
-          <iframe
-            allowFullScreen
-            title="test4"
-            src="https://www.pornhub.com/embed/f8e13f14b405e038deb6?autoplay=1&muted=1"
-            className="other"
-          ></iframe>
-        </div>
-      </div>
+      {selectedIds.length < 4 ? (
+        <Container maxWidth="lg">
+          <Grid container spacing={2} sx={{ marginTop: 2, marginBottom: 2 }}>
+            {videos.map((video) => (
+              <GridItem
+                key={video.id}
+                video={video}
+                onClick={() => handleClick(video.id)}
+                selected={selectedIds.includes(video.id)}
+              />
+            ))}
+          </Grid>
+        </Container>
+      ) : (
+        <TheGrid
+          id1={selectedIds[0]}
+          id2={selectedIds[1]}
+          id3={selectedIds[2]}
+          id4={selectedIds[3]}
+        />
+      )}
     </>
   );
 };

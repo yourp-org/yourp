@@ -1,0 +1,45 @@
+.the-grid {
+  position: absolute;
+  width: calc(100% - 60px);
+  height: calc(100% - 60px);
+  margin: 30px;
+
+  border: 1px solid;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 20px;
+}
+
+.main {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 1px solid;
+}
+
+.other {
+  right: 10%;
+  width: 20%;
+  height: 33%;
+  z-index: 1;
+
+  opacity: 0.75;
+
+  video {
+
+    transition: opacity 0.3s;
+
+    &:hover {
+      opacity: 1;
+      cursor: pointer;
+    }
+  }
+}
+
+video {
+  width: 100%;
+  height: 100%;
+}
