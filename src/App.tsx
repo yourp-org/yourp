@@ -136,38 +136,34 @@ const App = () => {
     other3Ref.className = "other";
   }, [other3Ref]);
 
-  const videoJsOptions1 = {
-    autoplay: true,
-    controls: true,
-    responsive: true,
-    fluid: true,
-    sources: [
-      {
-        src: url1,
-        type: "video/mp4",
-      },
-    ],
-  };
-
-  const videoJsOptions2 = {
-    autoplay: true,
-    controls: true,
-    responsive: true,
-    fluid: true,
-    sources: [
-      {
-        src: url2,
-        type: "video/mp4",
-      },
-    ],
-  };
-
   return (
     <>
       <div className="App">
         <div className="the-grid">
-          <VideoJS className="main" options={videoJsOptions1} />
-          <VideoJS className="other" options={videoJsOptions2} />
+          <iframe
+            allowFullScreen
+            title="test1"
+            src="https://www.pornhub.com/embed/f4cc0ad3819a36752467?autoplay=1&muted=1"
+            className="main"
+          ></iframe>
+          <iframe
+            allowFullScreen
+            title="test2"
+            src="https://www.pornhub.com/embed/3eee609d05b90c14222f?autoplay=1&muted=1"
+            className="other"
+          ></iframe>
+          <iframe
+            allowFullScreen
+            title="test3"
+            src="https://www.pornhub.com/embed/e5e9f6611e2ee05a31ce?autoplay=1&muted=1"
+            className="other"
+          ></iframe>
+          <iframe
+            allowFullScreen
+            title="test4"
+            src="https://www.pornhub.com/embed/f8e13f14b405e038deb6?autoplay=1&muted=1"
+            className="other"
+          ></iframe>
         </div>
       </div>
     </>
