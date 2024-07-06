@@ -1,40 +1,40 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./TheGrid.css";
 
-let main: HTMLElement | null = null;
+// let main: HTMLElement | null = null;
 
-const handleClick = (ref: HTMLElement) => {
-  if (!main) return;
+// const handleClick = (ref: HTMLElement) => {
+//   if (!main) return;
 
-  if (main === ref) return;
+//   if (main === ref) return;
 
-  main.className = "other";
-  ref.className = "main";
-  main = ref;
-};
+//   main.className = "other";
+//   ref.className = "main";
+//   main = ref;
+// };
 
-const addVideo = (ref: HTMLElement | null, url: string, index: number) => {
-  if (!ref || ref.childElementCount !== 0) return;
+// const addVideo = (ref: HTMLElement | null, url: string, index: number) => {
+//   if (!ref || ref.childElementCount !== 0) return;
 
-  const video = ref.appendChild(document.createElement("video"));
-  video.setAttribute("loop", "");
-  video.setAttribute("mute", "");
-  video.setAttribute("autoplay", "");
-  video.setAttribute("controls", "");
+//   const video = ref.appendChild(document.createElement("video"));
+//   video.setAttribute("loop", "");
+//   video.setAttribute("mute", "");
+//   video.setAttribute("autoplay", "");
+//   video.setAttribute("controls", "");
 
-  video.onclick = (e) => {
-    e.preventDefault();
-    handleClick(ref);
-  };
+//   video.onclick = (e) => {
+//     e.preventDefault();
+//     handleClick(ref);
+//   };
 
-  // video.onloadedmetadata = () => {
-  //   console.log(url, video.videoWidth, video.videoHeight);
-  // };
+//   // video.onloadedmetadata = () => {
+//   //   console.log(url, video.videoWidth, video.videoHeight);
+//   // };
 
-  const source = video.appendChild(document.createElement("source"));
-  source.setAttribute("src", url);
-  source.setAttribute("type", url.endsWith("mp4") ? "video/mp4" : "video/mp2t");
-};
+//   const source = video.appendChild(document.createElement("source"));
+//   source.setAttribute("src", url);
+//   source.setAttribute("type", url.endsWith("mp4") ? "video/mp4" : "video/mp2t");
+// };
 
 export const TheGrid = ({
   id1,
