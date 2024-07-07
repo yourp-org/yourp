@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import "./App.css";
 
 import { TheGrid } from "./TheGrid";
@@ -6,8 +6,20 @@ import { TheGrid } from "./TheGrid";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Container from "@mui/material/Container";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
 
 import data from "./assets/filtered_dump.json";
+
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+  },
+});
 
 type Video = {
   id: string;
@@ -72,15 +84,18 @@ const GridItem = ({
     <Grid
       item
       xs={3}
-      onMouseEnter={() => startChange()}
-      onMouseLeave={() => endChange()}
-      onClick={onClick}
       style={{
         opacity: selected ? (isHover ? 0.9 : 1) : isHover ? 0.75 : 0.5,
         transition: "opacity 0.3s",
       }}
     >
-      <Paper className="gridItem">
+      <Paper
+        className="gridItem"
+        onMouseEnter={() => startChange()}
+        onMouseLeave={() => endChange()}
+        onClick={onClick}
+        id={video.id}
+      >
         <img src={`${thumbnail_url}${index ?? thumbnail}.jpg`} alt="" />
       </Paper>
     </Grid>
@@ -88,9 +103,36 @@ const GridItem = ({
 };
 
 const App = () => {
-  const videos = ((data as any).videos as Video[]).slice(-50);
-
+  const [videos, setVideos] = useState<Video[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [videoToGuid, setVideoToGuid] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    const url = `https://video.bunnycdn.com/library/${process.env
+      .REACT_APP_BUNNY_NET_LIBRARY_ID!}/videos`;
+    const options = {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        AccessKey: process.env.REACT_APP_BUNNY_NET_ACCESS_KEY!,
+      },
+    };
+
+    fetch(url, options)
+      .then((res) => res.json())
+      .then((json) => {
+        const newVideos = (data as any).videos.slice(-52) as Video[];
+        const newVideoGuid: { [key: string]: string } = {};
+        json.items.forEach((item: any) => {
+          const id = item.title.replace(".mp4", "");
+          const video = newVideos.find((video) => video.id === id);
+          if (video) newVideoGuid[video.id] = item.guid;
+        });
+        setVideos(newVideos);
+        setVideoToGuid(newVideoGuid);
+      })
+      .catch((err) => console.error("error:" + err));
+  }, []);
 
   const handleClick = (id: string) => {
     if (selectedIds.length === 4) return;
@@ -103,27 +145,51 @@ const App = () => {
 
   return (
     <>
-      {selectedIds.length < 4 ? (
-        <Container maxWidth="lg">
-          <Grid container spacing={2} sx={{ marginTop: 2, marginBottom: 2 }}>
-            {videos.map((video) => (
-              <GridItem
-                key={video.id}
-                video={video}
-                onClick={() => handleClick(video.id)}
-                selected={selectedIds.includes(video.id)}
-              />
-            ))}
-          </Grid>
-        </Container>
-      ) : (
-        <TheGrid
-          id1={selectedIds[0]}
-          id2={selectedIds[1]}
-          id3={selectedIds[2]}
-          id4={selectedIds[3]}
-        />
-      )}
+      <ThemeProvider theme={darkTheme}>
+        <CssBaseline />
+
+        {selectedIds.length < 4 ? (
+          <>
+            <AppBar position="fixed">
+              <Toolbar>
+                <Typography
+                  variant="h6"
+                  component="div"
+                  sx={{ flexGrow: 1, textAlign: "center" }}
+                >
+                  {`Selected ${selectedIds.length}/4 videos...`}
+                </Typography>
+              </Toolbar>
+            </AppBar>
+            <Container maxWidth="lg">
+              <Grid
+                container
+                spacing={2}
+                sx={{ marginTop: 8, marginBottom: 2 }}
+              >
+                {videos
+                  .filter((video) => video.id in videoToGuid)
+                  .map((video) => (
+                    <Fragment key={video.id}>
+                      <GridItem
+                        video={video}
+                        onClick={() => handleClick(video.id)}
+                        selected={selectedIds.includes(video.id)}
+                      />
+                    </Fragment>
+                  ))}
+              </Grid>
+            </Container>
+          </>
+        ) : (
+          <TheGrid
+            id1={videoToGuid[selectedIds[0]]}
+            id2={videoToGuid[selectedIds[1]]}
+            id3={videoToGuid[selectedIds[2]]}
+            id4={videoToGuid[selectedIds[3]]}
+          />
+        )}
+      </ThemeProvider>
     </>
   );
 };
