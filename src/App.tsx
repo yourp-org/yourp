@@ -10,7 +10,7 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
-import data from "./assets/filtered_dump_52.json";
+import database from "./assets/filtered_dump_52.json";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -108,30 +108,26 @@ const App = () => {
   const [videoToGuid, setVideoToGuid] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    const url = `https://video.bunnycdn.com/library/${process.env
-      .REACT_APP_BUNNY_NET_LIBRARY_ID!}/videos`;
-    const options = {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        AccessKey: process.env.REACT_APP_BUNNY_NET_ACCESS_KEY!,
-      },
-    };
+    (async () => {
+      try {
+        const response = await fetch("/.netlify/functions/videos");
+        const data = await response.json();
 
-    fetch(url, options)
-      .then((res) => res.json())
-      .then((json) => {
-        const newVideos = (data as any).videos as Video[];
+        const newVideos = (database as any).videos as Video[];
         const newVideoGuid: { [key: string]: string } = {};
-        json.items.forEach((item: any) => {
+
+        data.data.items.forEach((item: any) => {
           const id = item.title.replace(".mp4", "");
           const video = newVideos.find((video) => video.id === id);
           if (video) newVideoGuid[video.id] = item.guid;
         });
+
         setVideos(newVideos);
         setVideoToGuid(newVideoGuid);
-      })
-      .catch((err) => console.error("error:" + err));
+      } catch (error) {
+        console.error(error);
+      }
+    })();
   }, []);
 
   const handleClick = (id: string) => {
