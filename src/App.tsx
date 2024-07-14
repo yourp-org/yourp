@@ -10,7 +10,7 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
-import data from "./assets/filtered_dump.json";
+import data from "./assets/filtered_dump_52.json";
 
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -121,7 +121,7 @@ const App = () => {
     fetch(url, options)
       .then((res) => res.json())
       .then((json) => {
-        const newVideos = (data as any).videos.slice(-52) as Video[];
+        const newVideos = (data as any).videos as Video[];
         const newVideoGuid: { [key: string]: string } = {};
         json.items.forEach((item: any) => {
           const id = item.title.replace(".mp4", "");
